@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/database/db.dart';
 import 'package:flutter_application_1/model/item.dart';
 import 'package:flutter_application_1/pages/Poketime/NewItem.dart';
 
@@ -9,6 +10,20 @@ class CharactersList extends StatefulWidget {
 
 class _CharactersListState extends State<CharactersList> {
   final List<Item> charactersItems = [];
+  final DB db = DB();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCharacters();
+  }
+
+  void _loadCharacters() async {
+    final characters = await db.getAllItem();
+    setState(() {
+      charactersItems.addAll(characters);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +41,8 @@ class _CharactersListState extends State<CharactersList> {
         itemCount: charactersItems.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(charactersItems[index].nomeJogador), // Usar o atributo de nome do item
+            title: Text(charactersItems[index]
+                .nomeJogador), // Usar o atributo de nome do item
           );
         },
       ),
@@ -42,6 +58,7 @@ class _CharactersListState extends State<CharactersList> {
 
     if (newItem != null) {
       setState(() {
+        db.createItem(newItem);
         charactersItems.add(newItem);
       });
     }

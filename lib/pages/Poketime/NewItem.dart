@@ -11,7 +11,7 @@ class NewItem extends StatefulWidget {
 class _NewItemState extends State<NewItem> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nomeJogadorController = TextEditingController();
-  bool _iniciante = false;
+  int _iniciante = 0;
   String? _pokemonPreferido;
   String? _jogoPreferido;
   bool _termosDeUsoAceitos = false;
@@ -74,10 +74,10 @@ class _NewItemState extends State<NewItem> {
                 children: [
                   const Text('Iniciante:'),
                   Switch(
-                    value: _iniciante,
+                    value: true,
                     onChanged: (value) {
                       setState(() {
-                        _iniciante = value;
+                        _iniciante = value? 1 : 0;
                       });
                     },
                   ),
