@@ -47,7 +47,7 @@ class DB {
     final Database db = await initDB();
     try {
       List<Map<String, Object?>> result = await db.query('item');
-      print(result.map((e) => Item.fromMap(e)).toList());
+      print(result.map((e) => Item.fromMap(e)).toList().toString());
       return result.map((e) => Item.fromMap(e)).toList();
     } catch (e) {
       print('Erro ao buscar itens: $e');

@@ -23,13 +23,14 @@ class _NewItemState extends State<NewItem> {
     // Criar um objeto Item com os valores coletados
     Item newItem = Item(
       id: DateTime.now().toString(),
-      nomeJogador: _nomeJogadorController.text,
-      iniciante: _iniciante,
-      pokemonPreferido: _pokemonPreferido,
-      jogoPreferido: _jogoPreferido,
+      nome: _nomeJogadorController.text,
+      foto: "https://drive.google.com/file/d/10vEeDgAf16JLzY_C-KIculj_sUBdv7fJ/view?usp=sharing",
+      jogoFavorito: _pokemonPreferido,
+      pokemonInicial: _jogoPreferido,
+      idade: 0,
     );
 
-    print('ID: ${newItem.id} Nome:${newItem.nomeJogador} Iniciante?${newItem.iniciante} Game favorito:${newItem.jogoPreferido} Poke preferido:${newItem.pokemonPreferido}');
+    print('ID: ${newItem.id} Nome:${newItem.nome} Iniciante?${newItem.foto} Game favorito:${newItem.jogoFavorito} Poke preferido:${newItem.pokemonInicial}');
     Navigator.of(context).pop(newItem);
   } else {
     // Adicione um aviso ao usuário, informando que os termos de uso precisam ser aceitos.

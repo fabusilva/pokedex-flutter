@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/database/db.dart';
 import 'package:flutter_application_1/model/item.dart';
 import 'package:flutter_application_1/pages/Poketime/NewItem.dart';
+import 'package:http/http.dart' as http;  // Importe o pacote http
 
 class CharactersList extends StatefulWidget {
   @override
@@ -9,8 +10,8 @@ class CharactersList extends StatefulWidget {
 }
 
 class _CharactersListState extends State<CharactersList> {
-  final List<Item> charactersItems = [];
-  final DB db = DB();
+  List<Item> charactersItems = [];
+  final String apiUrl = 'http://localhost:8000/api/user';
 
   @override
   void initState() {
@@ -18,11 +19,28 @@ class _CharactersListState extends State<CharactersList> {
     _loadCharacters();
   }
 
-  void _loadCharacters() async {
-    final characters = await db.getAllItem();
-    setState(() {
-      charactersItems.addAll(characters);
-    });
+  Future<void> _loadCharacters() async {
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+
+        // Mapeia a lista de itens usando o construtor fromMap da classe Item
+        List<Item> items = (data as List).map((item) {
+          return Item.fromMap(item);
+        }).toList();
+
+        setState(() {
+          // Atualiza o estado com os itens carregados
+          charactersItems.addAll(items);
+        });
+      } else {
+        throw Exception('Erro na requisição: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Erro: $e');
+    }
   }
 
   @override
@@ -41,8 +59,12 @@ class _CharactersListState extends State<CharactersList> {
         itemCount: charactersItems.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(charactersItems[index]
-                .nomeJogador), // Usar o atributo de nome do item
+            title: Text(
+              charactersItems[index].nome,
+            ),
+            subtitle: Text(
+              'Idade: ${charactersItems[index].idade.toString()}',
+            ),
           );
         },
       ),
@@ -58,7 +80,6 @@ class _CharactersListState extends State<CharactersList> {
 
     if (newItem != null) {
       setState(() {
-        db.createItem(newItem);
         charactersItems.add(newItem);
       });
     }
