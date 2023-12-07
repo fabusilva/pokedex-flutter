@@ -1,7 +1,7 @@
 class Item {
-  final String foto;
-  final String id;
-  final int idade;
+  final String? foto;
+  final String? id;
+  final int? idade;
   final String? jogoFavorito;
   final String nome;
   final String? pokemonInicial;

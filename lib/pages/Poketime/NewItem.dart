@@ -1,8 +1,13 @@
+import 'dart:convert'; // Adicione esta importação
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/model/item.dart';
+import 'package:http/http.dart' as http;
 
 class NewItem extends StatefulWidget {
-  const NewItem({Key? key}) : super(key: key);
+  final Item? item;
+
+  NewItem({Key? key, required this.item}) : super(key: key);
 
   @override
   _NewItemState createState() => _NewItemState();
@@ -11,37 +16,86 @@ class NewItem extends StatefulWidget {
 class _NewItemState extends State<NewItem> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nomeJogadorController = TextEditingController();
-  int _iniciante = 0;
+  final TextEditingController _idadeController = TextEditingController();
   String? _pokemonPreferido;
   String? _jogoPreferido;
+  String? _id;
   bool _termosDeUsoAceitos = false;
 
-  void _saveItem() {
-  if (_formKey.currentState!.validate() && _termosDeUsoAceitos) {
-    _formKey.currentState!.save();
+  @override
+  void initState() {
+    super.initState();
 
-    // Criar um objeto Item com os valores coletados
-    Item newItem = Item(
-      id: DateTime.now().toString(),
-      nome: _nomeJogadorController.text,
-      foto: "https://drive.google.com/file/d/10vEeDgAf16JLzY_C-KIculj_sUBdv7fJ/view?usp=sharing",
-      jogoFavorito: _pokemonPreferido,
-      pokemonInicial: _jogoPreferido,
-      idade: 0,
-    );
-
-    print('ID: ${newItem.id} Nome:${newItem.nome} Iniciante?${newItem.foto} Game favorito:${newItem.jogoFavorito} Poke preferido:${newItem.pokemonInicial}');
-    Navigator.of(context).pop(newItem);
-  } else {
-    // Adicione um aviso ao usuário, informando que os termos de uso precisam ser aceitos.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Você deve aceitar os termos de uso para inserir o item.'),
-      ),
-    );
+    if (widget.item != null) {
+      _id = widget.item!.id;
+      _nomeJogadorController.text = widget.item!.nome;
+      _idadeController.text = widget.item!.idade.toString();
+      _pokemonPreferido = widget.item!.jogoFavorito;
+      _jogoPreferido = widget.item!.pokemonInicial;
+    }
   }
-}
 
+  Future<void> updateItem(Item newItem) async {
+    try {
+      if (newItem.id != null) {
+        // Corrigi aqui, usando _id em vez de newItem.id
+        print('Teste do id do newItem: ${newItem.id}');
+
+        final response = await http.put(
+          Uri.parse('http://localhost:8000/api/user/update/${newItem.id}'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(newItem
+              .toMap()), // Corrigi aqui, usando widget.item em vez de newItem
+        );
+
+        if (response.statusCode == 200) {
+          print("Put realizado com sucesso!");
+        } else {
+          print('Erro ao Atualizar item: ${response.statusCode}');
+        }
+      } else {
+        print('ID do newItem é nulo. A atualização não é possível.');
+      }
+    } catch (e) {
+      print('Erro ao adicionar item: $e');
+    }
+  }
+
+  void _saveItem() {
+    if (_formKey.currentState!.validate() && _termosDeUsoAceitos) {
+      _formKey.currentState!.save();
+
+      Item newItem = Item(
+        id: _id,
+        nome: _nomeJogadorController.text,
+        foto:
+            "https://example.com/default-image.jpg", // Adicionei uma URL de imagem
+        jogoFavorito: _pokemonPreferido,
+        pokemonInicial: _jogoPreferido,
+        idade: int.tryParse(_idadeController.text),
+      );
+
+      updateItem(newItem);
+      print("Novo Item:");
+      print("ID: ${newItem.id}");
+      print("Nome: ${newItem.nome}");
+      print("Foto: ${newItem.foto}");
+      print("Jogo Favorito: ${newItem.jogoFavorito}");
+      print("Pokemon Inicial: ${newItem.pokemonInicial}");
+      print("Idade: ${newItem.idade}");
+
+      Navigator.of(context).pop(newItem);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Você deve aceitar os termos de uso para inserir o item.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,14 +127,13 @@ class _NewItemState extends State<NewItem> {
               ),
               Row(
                 children: [
-                  const Text('Iniciante:'),
-                  Switch(
-                    value: true,
-                    onChanged: (value) {
-                      setState(() {
-                        _iniciante = value? 1 : 0;
-                      });
-                    },
+                  Expanded(
+                    child: TextFormField(
+                      controller: _idadeController,
+                      decoration: const InputDecoration(
+                        labelText: 'Idade do Jogador',
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -128,27 +181,33 @@ class _NewItemState extends State<NewItem> {
                 ],
               ),
               const Text('Jogo Preferido:'),
-              DropdownButton<String>(
-                value: _jogoPreferido,
-                items: [
-                  DropdownMenuItem(
-                    value: 'Red/Blue',
-                    child: const Text('Red/Blue'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Gold/Silver',
-                    child: const Text('Gold/Silver'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Ruby/Sapphire',
-                    child: const Text('Ruby/Sapphire'),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: _jogoPreferido,
+                      items: [
+                        DropdownMenuItem(
+                          value: 'Red/Blue',
+                          child: const Text('Red/Blue'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Gold/Silver',
+                          child: const Text('Gold/Silver'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Ruby/Sapphire',
+                          child: const Text('Ruby/Sapphire'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _jogoPreferido = value;
+                        });
+                      },
+                    ),
                   ),
                 ],
-                onChanged: (value) {
-                  setState(() {
-                    _jogoPreferido = value;
-                  });
-                },
               ),
               Row(
                 children: [
